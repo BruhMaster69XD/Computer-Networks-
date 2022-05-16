@@ -6,33 +6,34 @@ import threading
 
 def readMessages(sock):
     while True:
-        
+        rData = ""
         while True:
-            accumulator = sock.recv(1)
-            checker = accumulator[:-2]
-            checker += accumulator[:-1]
-            rData += accumulator
-
-            if checker == "\n":
+            rData = sock.recv(4096)
+            # accumulator2 = accumulator2.decode()
+            # checker2 = accumulator2[-1]
+            # rData +=  accumulator2
+            # if checker2 == "\n":
+            #     break
+            rData = rData.decode()
+            if rData == "":
                 break
-
-        rData2 = rData
-        rData2 = rData2[0:7]
-        rData = rData.decode("utf-8")
-        rData2 = rData2.decode("utf-8")
-        if rData2 == "WHO-OK":
-            print(rData)
-        elif rData2 == "SEND-OK":
-            print("your message was sent succesfully")
-        elif rData2 == "UNKNOWN":
-            print("user is not logged in")
-        elif rData2 == "BAD-RQST-HDR":
-            print("your header was incorrect")
-        elif rData2 == "BAD-RQST-BODY":
-            print("something went wrong with your body")
-        else:
-            rData = rData[8:]
-            print(rData)
+            else :
+                rData2 = rData.split()[0]
+                if rData2 == "WHO-OK":
+                    print(rData)
+                elif rData2 == "SEND-OK":
+                    print("your message was sent succesfully")
+                elif rData2 == "BUSY":
+                    print("sorry fam you aint getting in")
+                elif rData2 == "UNKNOWN":
+                    print("user is not logged in")
+                elif rData2 == "BAD-RQST-HDR":
+                    print("your header was incorrect")
+                elif rData2 == "BAD-RQST-BODY":
+                    print("something went wrong with your body")
+                else:
+                    rData = rData[8:]
+                    print(rData)
 
 
 
@@ -46,21 +47,27 @@ def OurProgram(sock) :
     string_bytes = message.encode("utf-8")
     sock.sendall(string_bytes)
 
-    while True:
-            accumulator = sock.recv(1)
-            checker = accumulator[:-2]
-            checker += accumulator[:-1]
-            data += accumulator
+    data = ""
 
-            if checker == "\n":
+    while True:
+            accumulator2 = sock.recv(1)
+            accumulator2 = accumulator2.decode()
+            checker2 = accumulator2[-1]
+            data +=  accumulator2
+            if checker2 == "\n":
                 break
 
-    decoded = data.decode()
+    decoded = data
     decoded = decoded [:-1]
 
             
     while decoded == "IN-USE":
         
+        sock.close()
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        host_port = ("143.47.184.219", 5378)
+        sock.connect(host_port)
+
         print("the username was already taken")
         message = "HELLO-FROM "
         message += input("please enter a username: ")
@@ -72,10 +79,9 @@ def OurProgram(sock) :
 
         decoded = data.decode()
         decoded = decoded [:-1]
-        sock.close()
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        host_port = ("143.47.184.219", 5378)
-        sock.connect(host_port)
+        print(decoded)
+
+        
 
     t = threading.Thread(target=readMessages, args = (sock,))
     t.daemon = True
@@ -118,7 +124,7 @@ def OurProgram(sock) :
 
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-host_port = ("143.47.184.219", 5378)
+host_port = ("localhost", 5050)
 sock.connect(host_port)
 
 OurProgram(sock)
